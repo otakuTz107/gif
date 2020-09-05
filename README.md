@@ -3,4 +3,4 @@
 
 其中有引用两个库：
 <br/>1.libgif-js：https://github.com/buzzfeed/libgif-js
-Nbr/>2.gif.js：https://github.com/jnordberg/gif.js/
+<br/>2.gif.js：https://github.com/jnordberg/gif.js/
