@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+<meta name="renderer" content="webkit"/>
+<meta name="author" content="TZ"/>
+<meta name="keywords" content=""/>
+<meta name="description" content=""/>
+<title>GIF</title>
+</head>
+<style>
+*{ margin:0;padding:0;box-sizing:border-box;font-size:16px;line-height:17px;font-family:Arial,sans-serif; }
+
+.superGif{max-width:1000px;}
+.jsgif{display:inline-block;}
+canvas,img{ vertical-align:bottom; }
+#rightUL li{margin:5px}
+#controlBtnContainer button{ margin:0px 4px;}
+input[type=range]{width:85px;height:16px}
+input[type=number]{width:40px;font-size:14px;border:0;vertical-align:top}
+
+</style>
+<style></style>
+<!-- https://github.com/buzzfeed/libgif-js -->
+<script src="./script/libgif/libgif.js"></script>
+<script src="./script/libgif/rubbable.js"></script>
+<script src="./script/gif.js"></script>
+<body>
+<div style="text-align:center;white-space:nowrap">
+	<div style="display:inline-block;">
+		<div>
+			<div style="line-height:0"><img id="showImg" style="display:none"/></div>
+			<img class="superGif" src="./background.png" rel:animated_src="./media/test.gif" rel:auto_play=0/>
+		</div>
+		<div id="controlBtnContainer" style="margin:5px 0;"><button class="controlBtn" onclick="sg.play()" disabled>play</button><button class="controlBtn" onclick="sg.pause()" disabled>pause</button><button class="controlBtn" onclick="sg.move_relative(-1)" disabled>previous</button><button class="controlBtn" onclick="sg.move_relative(1)" disabled>next</button><button class="controlBtn" onclick="sg.move_to(0)" style="margin-left:15px" disabled>reset</button><span title="跳转到指定帧" style="margin:5px;vertical-align:top"><sup style="color:red">*</sup><input id="movetoFrame" type="number" min=1 value="1" style="border:1px solid #c0c0c0" oninput="sg.move_to(parseInt(this.value)-1)"/></span><p style="float:right">FramesLenth:<span id="framesLen"></p></div>
+		<div><input  class="controlBtn" type="file" onchange="gifFileC(event)" disabled=""/><button id="getFramesBtn" class="controlBtn" onclick="getFramesFn(event)" disabled style="float:right">getFrames</button></div>
+	</div><div style="display:inline-block;vertical-align:bottom;border-left:1px dashed #c0c0c0;padding-left:4px;margin-left:10px">
+		<ul id="rightUL" style="list-style:none;text-align:left;">
+			<li><button id="cutoffBtn" onclick="cutoffFn(event)">cut off</button><span style="margin-left:5px;vertical-align:top" title="从当前帧开始截取之后指定的x帧并显示, 生成Gif时会把(剩下的)截取帧插回原来位置"><sup style="color:red">*</sup><input id="cutFrameCount" type="number" min=0 value=1 style="border:1px solid #c0c0c0" /></span></li>
+			<li><span>Delay:</span><input id="inpRange" type="range" min=20 max=250 value=100 style="margin:0 5px;vertical-align:top" onchange="inpRangeFn(this)"><input id="inpText" type="number" value=100 oninput="inpTextFn(this)"></li>
+			<li><button class="controlBtn" id="createGifBtn" onclick="createGifFn(event)">createGif</button></li>
+			<li><button onclick="clearFramesFn()">clearFrames</button></li>
+		</ul>
+	</div>
+</div>
+<div style="user-select:none;margin:10px 0">
+	<p style="margin:10px 0 0 20px">Frames:&nbsp;<span id="frameSum">0</span><input id="frameScale" type="range" onchange="frameScaleFn(this)" min=25 max=100 value=100 style="vertical-align:top;margin-left:20px"/></p>
+	<div id="showFrames" style="text-align:center"></div>
+</div>
+</body>
+<script>
+var sg=gSG(document.querySelector(".superGif")); sg.load(sgLoaded); var controlBtnArr=document.querySelectorAll(".controlBtn");
+var tempImg,tempGif,canvClone,showFrames=gN("#showFrames"),frameSum,loopDelay=100; var cssR=document.styleSheets[1]; var wid,hei=0; var currentFrame=null,cutoffLen;
+//Dom Element
+function gifFileC(e){
+	if(!e.target.files[0])return; clearFramesFn(); currentFrame=cutoffLen=null; if(tempGif){window.URL.revokeObjectURL(tempGif);tempGif=null; gN("#showImg").style.display="none";gN("#showImg").removeAttribute("src");}
+	tempImg?window.URL.revokeObjectURL(tempImg):"";  tempImg=window.URL.createObjectURL(e.target.files[0]);
+	var tNode=createElem("img",{"class":"superGif","rel:animated_src":tempImg,"rel:auto_play":0});  sg.get_canvas().parentNode.replaceChild(tNode,sg.get_canvas());
+	sg=gSG(tNode);  for(var i=0;i<controlBtnArr.length;i++){ controlBtnArr[i].setAttribute("disabled",""); }; wid=0; sg.load(sgLoaded);
+	}
+function getFramesFn(e){
+	clearFramesFn();currentFrame=cutoffLen=null;
+	var currentFrameI=sg.get_current_frame();
+	sg.move_to(0); showFrames.appendChild(gCanvases(sg.get_length())); sg.move_to(currentFrameI); 
+	gN("#frameSum").textContent=frameSum=sg.get_length();
+	}
+function clearFramesFn(){ gN("#frameSum").textContent=frameSum=0;showFrames.innerHTML=""; }
+function createGifFn(e){
+	if(!frameSum&&!cutoffLen)return;
+	var tempBtn=gN("#createGifBtn");var tempBtnVal=tempBtn.textContent;  tempBtn.textContent="waiting...";tempBtn.setAttribute("disabled","");
+	var gif=new GIF({
+		repeat:0, quality:10, workerScript:"./script/gif.worker.js"
+		});
+	var arr=showFrames.querySelectorAll("canvas");
+	if(currentFrame==null){ addFrame(arr); }
+	else{
+		var currentFrameI=sg.get_current_frame();sg.pause();sg.move_to(0); var children=gCanvases(currentFrame).childNodes,children2=0,n=currentFrame+cutoffLen; 
+		if(n>=sg.get_length){} else{ sg.move_to(n);children2=gCanvases(sg.get_length()-n).childNodes; }
+		addFrame(arr); addFrame(children); addFrame(children2);
+		sg.move_to(currentFrameI);
+		}
+	gif.on("finished",function(blob){
+		tempGif?window.URL.revokeObjectURL(tempGif):"";
+		gN("#showImg").src=tempGif=window.URL.createObjectURL(blob);gN("#showImg").style.display="inline-block";
+		tempBtn.removeAttribute("disabled");tempBtn.textContent=tempBtnVal;
+		});
+	gif.render();
+	function addFrame(arr){ for(var i=0;i<arr.length;i++){gif.addFrame(arr[i],{delay:loopDelay});} }
+	}
+function inpRangeFn(node){ loopDelay=gN("#inpText").value=node.value; }
+function inpTextFn(node){ var tempNode=gN("#inpRange");tempNode.value=node.value;loopDelay=tempNode.value; }
+showFrames.addEventListener("click",sfClickFn);
+function sfClickFn(e){
+	if(!(e.target.nodeName.toUpperCase()=="CANVAS"))return;
+	e.target.parentNode.removeChild(e.target); gN("#frameSum").textContent=--frameSum;
+	}
+function frameScaleFn(node){
+	if(!wid)return;
+	var fScale=node.value/100;var fWidHalf=Math.round(wid*(1-fScale)/2),fHeiHalf=Math.round(hei*(1-fScale)/2);
+	var str=(20-fHeiHalf)+"px "+(-fWidHalf)+"px "+(-fHeiHalf)+"px "+(20-fWidHalf)+"px";
+	cssR.cssRules.length?cssR.deleteRule(0):"";
+	cssR.insertRule("#showFrames canvas{transform:scale("+fScale+","+fScale+");margin:"+str+"}",0);
+	}
+function cutoffFn(e){
+	clearFramesFn();
+	currentFrame=sg.get_current_frame();cutoffLen=parseInt(gN("#cutFrameCount").value);cutoffLen>(sg.get_length()-currentFrame)?cutoffLen=sg.get_length()-currentFrame:"";
+	showFrames.appendChild(gCanvases(cutoffLen)); gN("#frameSum").textContent=frameSum=cutoffLen;
+	}
+gN("#getFramesBtn").addEventListener("click",frameStyleInit,{once:true});
+gN("#cutoffBtn").addEventListener("click",frameStyleInit,{once:true});
+
+//Invoke
+function frameStyleInit(e){
+	frameScaleFn(gN("#frameScale")); this.id=="getFramesBtn"?gN("#cutoffBtn").removeEventListener("click",frameStyleInit,{once:true}):gN("#getFramesBtn").removeEventListener("click",frameStyleInit,{once:true});
+	}
+function gCanvases(len){
+	sg.pause(); var docFragm=document.createDocumentFragment();
+	for(var i=0;i<len;i++){
+		var node=canvClone.cloneNode(false);node.getContext("2d").drawImage(sg.get_canvas(),0,0);
+		docFragm.appendChild(node); sg.move_relative(1);
+		}
+	return docFragm;
+	}
+function sgLoaded(node){
+	wid=parseInt(gcs(sg.get_canvas()).width);hei=parseInt(gcs(sg.get_canvas()).height);
+	canvClone=createElem("canvas",{"width":wid,"height":hei});
+	for(var i=0;i<controlBtnArr.length;i++){ controlBtnArr[i].removeAttribute("disabled"); }
+	gN("#framesLen").textContent=sg.get_length(); gN("#movetoFrame").setAttribute("max",sg.get_length());gN("#cutFrameCount").setAttribute("max",sg.get_length());
+	}
+function createElem(str,obj){
+	var tNode=document.createElement(str); setAttr(tNode,obj);
+	return tNode;
+	}
+function setAttr(node,obj){
+	for(var key in obj){ node.setAttribute(key,obj[key]); }
+	}
+function gSG(node){return new SuperGif({gif:node,max_width:1000});}
+function gcs(node){ return window.getComputedStyle(node,null); }
+function gN(str){return document.querySelector(str);}
+</script>
+</html>
