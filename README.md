@@ -4,3 +4,5 @@
 其中有引用两个库：
 <br/>1.libgif-js：https://github.com/buzzfeed/libgif-js
 <br/>2.gif.js：https://github.com/jnordberg/gif.js/
+
+另外 index.html 参考了下网易云音乐的主页
