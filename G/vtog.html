@@ -45,7 +45,7 @@
 	</div><div style="display:inline-block;" id="controlRightDiv">
 		<ul style="list-style-type:none;">
 			<li><span style="color:#a9a9a9;" title="只允许通过源代码修改,值越小质量越好">Quality: 10</span></li>
-			<li><span id="delaySpan" title="*不要超出范围: 19&lt;x&lt;251">Delay:</span><input id="delayInput" type="range" min=20 max=250 value=100 onchange="delayChangeFn(event)" style="vertical-align:top;margin:0 5px;width:85px"/><input type="number" id="delayValueInput" value="100" oninput="textInputFn(event)"/></li>
+			<li><span id="delaySpan" title="*不要超出范围: 19&lt;x&lt;251">Delay:</span><input id="delayInput" type="range" min=20 max=250 value=100 oninput="delayChangeFn(event)" style="vertical-align:top;margin:0 5px;width:85px"/><input type="number" id="delayValueInput" value="100" oninput="textInputFn(event)"/></li>
 			<li><button onclick="showGifFn(event)">Create Gif</button><input id="createGifErr" type="text" title="别在本地运行 或 更新浏览器" onchange="createGifErrInputFn(event)"></input></li>
 			<li><button id="clearCanvases" onclick="clearCanvFn(event)">Clear Canvases</button></li>
 			<li style="margin-top:15px;"><span>使用说明: <br/>1.先上传(加载)一个本地视频(最好是mp4格式,其他格式可能无法播放).<br/>2.播放视频，再暂停视频的播放，暂停后会在下方生成播放过的视频帧.<br/>3.点击按钮"Create Gif"，会生成并显示一个利用视频帧合成的Gif.<br/><br/>PS: <br/>1.点击按钮"Clear Canvases"会删掉所有视频帧.<br/>2.下方的视频帧可以点击(会删除所点击的视频帧).<br/>3."Delay" 为50,表示每50ms就获取一个视频帧，同时也是Gif的播放速度.<br/>4."Quality"越小、"Delay"越小、视频帧数越多、视频的分辨率越大、<br/>(尤其是)在IE运行，生成Gif会需要更长的时间.</span></li>

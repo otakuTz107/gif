@@ -36,14 +36,14 @@ input[type=number]{width:40px;font-size:14px;border:0;vertical-align:top}
 	</div><div style="display:inline-block;vertical-align:bottom;border-left:1px dashed #c0c0c0;padding-left:4px;margin-left:10px">
 		<ul id="rightUL" style="list-style:none;text-align:left;">
 			<li><button id="cutoffBtn" onclick="cutoffFn(event)">cut off</button><span style="margin-left:5px;vertical-align:top" title="从当前帧开始截取之后指定的x帧并显示, 生成Gif时会把(剩下的)截取帧插回原来位置"><sup style="color:red">*</sup><input id="cutFrameCount" type="number" min=0 value=1 style="border:1px solid #c0c0c0" /></span></li>
-			<li><span>Delay:</span><input id="inpRange" type="range" min=20 max=250 value=100 style="margin:0 5px;vertical-align:top" onchange="inpRangeFn(this)"><input id="inpText" type="number" value=100 oninput="inpTextFn(this)"></li>
+			<li><span>Delay:</span><input id="inpRange" type="range" min=20 max=250 value=100 style="margin:0 5px;vertical-align:top" oninput="inpRangeFn(this)"><input id="inpText" type="number" value=100 oninput="inpTextFn(this)"></li>
 			<li><button class="controlBtn" id="createGifBtn" onclick="createGifFn(event)">createGif</button></li>
 			<li><button onclick="clearFramesFn()">clearFrames</button></li>
 		</ul>
 	</div>
 </div>
 <div style="user-select:none;margin:10px 0">
-	<p style="margin:10px 0 0 20px">Frames:&nbsp;<span id="frameSum">0</span><input id="frameScale" type="range" onchange="frameScaleFn(this)" min=25 max=100 value=100 style="vertical-align:top;margin-left:20px"/></p>
+	<p style="margin:10px 0 0 20px">Frames:&nbsp;<span id="frameSum">0</span><input id="frameScale" type="range" oninput="frameScaleFn(this)" min=25 max=100 value=100 style="vertical-align:top;margin-left:20px"/></p>
 	<div id="showFrames" style="text-align:center"></div>
 </div>
 </body>
